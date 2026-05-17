@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#c0392b">
+<meta name="description" content="ADR Zone - Справочник за опасни товари">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ADR Zone">
+<link rel="manifest" href="manifest.json">
+<title>ADR Zone</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #c0392b;
+    --red-dark: #96281b;
+    --red-light: #e74c3c;
+    --orange: #e67e22;
+    --yellow: #f1c40f;
+    --green: #27ae60;
+    --blue: #2980b9;
+    --purple: #8e44ad;
+    --dark: #1a1a1a;
+    --darker: #111;
+    --card: #222;
+    --border: #333;
+    --text: #f0f0f0;
+    --muted: #888;
+    --font-heading: 'Barlow Condensed', sans-serif;
+    --font-body: 'Barlow', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--darker);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overscroll-behavior: none;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--red-dark);
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .logo {
+    font-family: var(--font-heading);
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: #fff;
+    line-height: 1;
+  }
+
+  .logo span {
+    color: var(--yellow);
+  }
+
+  .offline-badge {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(255,255,255,0.15);
+    padding: 3px 8px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+    display: none;
+  }
+
+  .offline-badge.show { display: block; }
+
+  /* SEARCH */
+  .search-wrap {
+    padding: 12px 16px;
+    background: var(--dark);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .search-box:focus-within {
+    border-color: var(--red-light);
+  }
+
+  .search-icon {
+    padding: 0 12px;
+    color: var(--muted);
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  #searchInput {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    padding: 12px 0;
+  }
+
+  #searchInput::placeholder { color: var(--muted); }
+
+  .clear-btn {
+    padding: 0 14px;
+    color: var(--muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    display: none;
+  }
+
+  .clear-btn.show { display: block; }
+
+  /* NAV TABS */
+  .nav-tabs {
+    display: flex;
+    background: var(--dark);
+    border-bottom: 2px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .nav-tabs::-webkit-scrollbar { display: none; }
+
+  .tab-btn {
+    flex-shrink: 0;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--muted);
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: -2px;
+    text-transform: uppercase;
+  }
+
+  .tab-btn.active {
+    color: var(--red-light);
+    border-bottom-color: var(--red-light);
+  }
+
+  /* MAIN */
+  main {
+    padding: 12px 16px 80px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin: 16px 0 8px;
+  }
+
+  /* CLASS CARDS */
+  .class-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .class-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .class-card:active { transform: scale(0.97); }
+
+  .class-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: var(--accent, var(--red));
+    border-radius: 4px 0 0 4px;
+  }
+
+  .class-num {
+    font-family: var(--font-heading);
+    font-size: 30px;
+    font-weight: 900;
+    color: var(--accent, var(--red));
+    line-height: 1;
+  }
+
+  .class-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-top: 4px;
+    line-height: 1.3;
+  }
+
+  .class-icon {
+    font-size: 28px;
+    position: absolute;
+    right: 12px;
+    bottom: 10px;
+    opacity: 0.4;
+  }
+
+  /* DETAIL PANEL */
+  .detail-panel {
+    display: none;
+    animation: slideUp 0.25s ease;
+  }
+
+  .detail-panel.active { display: block; }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    color: var(--red-light);
+    font-family: var(--font-heading);
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 8px 0;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+  }
+
+  .detail-header {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .detail-header::after {
+    content: attr(data-icon);
+    font-size: 80px;
+    position: absolute;
+    right: -10px;
+    bottom: -10px;
+    opacity: 0.1;
+    line-height: 1;
+  }
+
+  .detail-class-num {
+    font-family: var(--font-heading);
+    font-size: 56px;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--accent, var(--red));
+  }
+
+  .detail-class-name {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 700;
+    margin-top: 4px;
+    color: var(--text);
+  }
+
+  .detail-desc {
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  /* INFO BLOCKS */
+  .info-block {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    margin-bottom: 10px;
+  }
+
+  .info-block-title {
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .info-block-title.danger { color: var(--red-light); }
+  .info-block-title.action { color: var(--orange); }
+  .info-block-title.protect { color: var(--blue); }
+  .info-block-title.info { color: var(--green); }
+
+  .info-list {
+    list-style: none;
+  }
+
+  .info-list li {
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .info-list li:last-child { border-bottom: none; }
+
+  .info-list li::before {
+    content: '›';
+    color: var(--red-light);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* UN SEARCH */
+  .un-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  .un-card:active { border-color: var(--red-light); }
+
+  .un-number {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--orange);
+  }
+
+  .un-name {
+    font-size: 15px;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+  .un-class {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .un-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  .tag-red { background: rgba(192,57,43,0.25); color: #e74c3c; }
+  .tag-orange { background: rgba(230,126,34,0.25); color: #e67e22; }
+  .tag-blue { background: rgba(41,128,185,0.25); color: #5dade2; }
+  .tag-green { background: rgba(39,174,96,0.25); color: #2ecc71; }
+  .tag-purple { background: rgba(142,68,173,0.25); color: #a569bd; }
+
+  /* EMERGENCY ACTIONS */
+  .action-grid {
+    display: grid;
+    gap: 10px;
+  }
+
+  .action-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent-color, var(--red));
+  }
+
+  .action-title {
+    font-family: var(--font-heading);
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    color: var(--accent-color, var(--red-light));
+  }
+
+  .action-steps {
+    list-style: none;
+    counter-reset: steps;
+  }
+
+  .action-steps li {
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    counter-increment: steps;
+  }
+
+  .action-steps li:last-child { border-bottom: none; }
+
+  .action-steps li::before {
+    content: counter(steps);
+    background: var(--accent-color, var(--red));
+    color: #fff;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 12px;
+    min-width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* PLACARDS */
+  .placard-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .placard {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-heading);
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform 0.15s;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid transparent;
+  }
+
+  .placard:active { transform: scale(0.95); }
+
+  .placard-num {
+    font-size: 32px;
+    line-height: 1;
+  }
+
+  .placard-label {
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-align: center;
+    padding: 0 4px;
+    margin-top: 2px;
+    line-height: 1.2;
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-text { font-size: 16px; }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--dark);
+    border-top: 1px solid var(--border);
+    display: flex;
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .nav-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 10px 0;
+    color: var(--muted);
+    font-family: var(--font-heading);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.2s;
+  }
+
+  .nav-btn svg { width: 22px; height: 22px; }
+  .nav-btn.active { color: var(--red-light); }
+
+  /* VIEWS */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* INSTALL BANNER */
+  .install-banner {
+    background: linear-gradient(135deg, var(--red-dark), #7b241c);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    display: none;
+  }
+
+  .install-banner.show { display: flex; }
+
+  .install-text { flex: 1; font-size: 13px; line-height: 1.4; }
+  .install-text strong { display: block; font-size: 15px; margin-bottom: 2px; }
+
+  .install-btn {
+    background: #fff;
+    color: var(--red-dark);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* Search results */
+  #searchResults { display: none; }
+  #searchResults.active { display: block; }
+
+  .no-results {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 15px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">ADR <span>ZONE</span></div>
+    <div class="offline-badge" id="offlineBadge">● ОФЛАЙН</div>
+  </div>
+  <div class="search-wrap">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="search" id="searchInput" placeholder="Търси по UN номер или вещество..." inputmode="search">
+      <button class="clear-btn" id="clearBtn" onclick="clearSearch()">✕</button>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('classes', this)">КЛАСОВЕ</button>
+    <button class="tab-btn" onclick="switchTab('un', this)">UN НОМЕРА</button>
+    <button class="tab-btn" onclick="switchTab('emergency', this)">АВАРИИ</button>
+    <button class="tab-btn" onclick="switchTab('placards', this)">ТАБЕЛИ</button>
+  </div>
+</header>
+
+<main>
+  <!-- SEARCH RESULTS -->
+  <div id="searchResults"></div>
+
+  <!-- CLASSES VIEW -->
+  <div id="view-classes" class="view active">
+    <div id="classesListView">
+      <p class="section-title">ADR КЛАСОВЕ ОПАСНОСТ</p>
+      <div class="class-grid" id="classGrid"></div>
+    </div>
+    <div id="classDetailView" class="detail-panel"></div>
+  </div>
+
+  <!-- UN VIEW -->
+  <div id="view-un" class="view">
+    <p class="section-title">ОПАСНИ ВЕЩЕСТВА (UN)</p>
+    <div id="unList"></div>
+  </div>
+
+  <!-- EMERGENCY VIEW -->
+  <div id="view-emergency" class="view">
+    <p class="section-title">ДЕЙСТВИЯ ПРИ АВАРИЯ</p>
+    <div id="emergencyList"></div>
+  </div>
+
+  <!-- PLACARDS VIEW -->
+  <div id="view-placards" class="view">
+    <p class="section-title">ОПАСНИ ТАБЕЛИ (ADR)</p>
+    <div class="placard-grid" id="placardGrid"></div>
+  </div>
+</main>
+
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="switchTab('classes', null, this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    КЛАСОВЕ
+  </button>
+  <button class="nav-btn" onclick="switchTab('un', null, this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    UN
+  </button>
+  <button class="nav-btn" onclick="switchTab('emergency', null, this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    АВАРИЯ
+  </button>
+  <button class="nav-btn" onclick="switchTab('placards', null, this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 19 2 19"/><path d="M12 9v5"/><path d="M12 16v1"/></svg>
+    ТАБЕЛИ
+  </button>
+</nav>
+
+<script>
+// ========== DATA ==========
+const ADR_CLASSES = [
+  {
+    id: '1', name: 'Взривни вещества', icon: '💥',
+    accent: '#e74c3c',
+    desc: 'Вещества и предмети, които могат да се взривят, да горят бързо или да произведат газ, топлина или светлина чрез химична реакция.',
+    subclasses: ['1.1 - Масова експлозия', '1.2 - Разпръскване без масова експлозия', '1.3 - Пожар без ударна вълна', '1.4 - Незначителна опасност', '1.5 - Много нечувствителни', '1.6 - Крайно нечувствителни'],
+    dangers: ['Масивна ударна вълна', 'Разлитащи се фрагменти', 'Интензивен огън', 'Дим и токсични газове', 'Сеизмичен ефект'],
+    actions: ['Евакуация минимум 500м', 'Не приближавай с открит огън', 'Уведоми полиция и пиротехници', 'Не се опитвай да гасиш', 'Осигури периметър'],
+    protection: ['Самозащитен дихателен апарат', 'Пълна защитна екипировка', 'Максимална дистанция'],
+    firefighting: ['НЕ ГАСИ ако вече гори', 'Охлаждай незасегнатите опаковки с вода от максимална дистанция', 'Подготви евакуация']
+  },
+  {
+    id: '2', name: 'Газове', icon: '💨',
+    accent: '#27ae60',
+    desc: 'Вещества, чието налягане на парите при 50°C е по-голямо от 300 kPa или са напълно газообразни при 20°C.',
+    subclasses: ['2.1 - Запалими газове', '2.2 - Незапалими, нетоксични газове', '2.3 - Токсични газове'],
+    dangers: ['Изтичане под налягане', 'Запалимост / Задушаване', 'Токсичност при клас 2.3', 'BLEVE при нагряване', 'Криогенни изгаряния'],
+    actions: ['Изолирай зоната', 'Елиминирай запалителни източници', 'Уведоми газова компания', 'Не затваряй клапани без обучение', 'Охлаждай цистерните с вода'],
+    protection: ['Изолиращ дихателен апарат', 'Защитно облекло срещу химикали', 'Следи посоката на вятъра'],
+    firefighting: ['Охлаждай контейнерите с вода', 'При малък пожар - позволи да изгори ако газта спре', 'Не гаси голям пожар без специализация']
+  },
+  {
+    id: '3', name: 'Запалими течности', icon: '🔥',
+    accent: '#e67e22',
+    desc: 'Течности или смеси от течности с температура на запалване не по-висока от 60°C.',
+    subclasses: ['Температура на запалване < 23°C (силно запалими)', 'Температура на запалване 23-60°C (запалими)'],
+    dangers: ['Лесно се запалват', 'Парите са по-тежки от въздуха', 'Могат да се разпространят далеч от изтичане', 'Риск от BLEVE при цистерни'],
+    actions: ['Спри двигателите', 'Забрани тютюнопушенето', 'Осигури вентилация', 'Не допускай навлизане в канализация', 'Използвай пяна или CO2'],
+    protection: ['Дихателен апарат', 'Антистатично облекло', 'Защита от пожар'],
+    firefighting: ['Пяна (AFFF)', 'Прахови огнегасители', 'CO2 за малки разливи', 'НИКОГА вода на разлято гориво']
+  },
+  {
+    id: '4.1', name: 'Запалими твърди', icon: '🧨',
+    accent: '#e74c3c',
+    desc: 'Твърди вещества, които лесно се запалват и могат да причинят пожар чрез триене.',
+    subclasses: ['Запалими твърди вещества', 'Саморазлагащи се вещества', 'Твърди десенсибилизирани взривни вещества'],
+    dangers: ['Лесно запалване от искра', 'Саморазлагане с отделяне на топлина', 'Реакция с вода при някои вещества'],
+    actions: ['Изолирай от топлинни източници', 'Предотврати разпространение', 'Провери за саморазлагане'],
+    protection: ['Дихателен апарат', 'Топлозащитно облекло'],
+    firefighting: ['Вода (обилно)', 'Пясък', 'Сух прах - при реагиращи с вода']
+  },
+  {
+    id: '4.2', name: 'Самозапалващи се', icon: '⚡',
+    accent: '#c0392b',
+    desc: 'Вещества, склонни към самонагряване при контакт с въздух.',
+    subclasses: ['Пирофорни - запалват се спонтанно на въздух', 'Самонагряващи се вещества'],
+    dangers: ['Самозапалване без открит огън', 'Интензивен пожар', 'Реакция с вода при пирофорни'],
+    actions: ['НЕ ИЗПОЛЗВАЙ ВОДА за пирофорни', 'Изолирай от въздух', 'Специализирана намеса'],
+    protection: ['Пълна изолиращa защита', 'Никакъв пряк контакт'],
+    firefighting: ['Сух пясък', 'Специални прахове', 'НЕ ВОДА при пирофорни']
+  },
+  {
+    id: '4.3', name: 'Реагират с вода', icon: '💧',
+    accent: '#2980b9',
+    desc: 'Вещества, отделящи запалими газове при контакт с вода.',
+    subclasses: ['Отделят запалим газ при контакт с вода'],
+    dangers: ['Водата е ОПАСНА', 'Отделяне на водород или ацетилен', 'Риск от взрив'],
+    actions: ['НЕ ИЗПОЛЗВАЙ ВОДА', 'Изолирай от влага', 'Специализирана помощ'],
+    protection: ['Пълна химическа защита', 'Следи за отделяне на газ'],
+    firefighting: ['Сух пясък', 'Специални прахове клас D', 'АБСОЛЮТНО НЕ ВОДА']
+  },
+  {
+    id: '5.1', name: 'Окислители', icon: '⚗️',
+    accent: '#f39c12',
+    desc: 'Вещества, поддържащи горенето чрез отделяне на кислород.',
+    subclasses: ['Окислители - засилват горенето на други вещества'],
+    dangers: ['Ускоряват горенето', 'Реагират с горими материали', 'Могат да причинят спонтанно запалване'],
+    actions: ['Дръж далеч от горими материали', 'Охлаждай с обилно количество вода', 'Вентилирай зоната'],
+    protection: ['Дихателен апарат', 'Химическа защита'],
+    firefighting: ['Обилно вода за охлаждане', 'Не смесвай с горими материали']
+  },
+  {
+    id: '5.2', name: 'Органични пероксиди', icon: '🧪',
+    accent: '#e67e22',
+    desc: 'Органични вещества с двувалентна -O-O- структура, термично нестабилни.',
+    subclasses: ['Тип A-G според степента на опасност'],
+    dangers: ['Саморазлагане с експлозия', 'Пожар', 'Отделяне на токсични газове'],
+    actions: ['Охлаждай с вода', 'Евакуирай зоната', 'Уведоми специалисти'],
+    protection: ['Пълна защита', 'Максимална дистанция'],
+    firefighting: ['Вода за охлаждане', 'Подготви евакуация']
+  },
+  {
+    id: '6.1', name: 'Токсични вещества', icon: '☠️',
+    accent: '#8e44ad',
+    desc: 'Вещества, способни да причинят смърт, сериозно увреждане или вреда на здравето при поглъщане, вдишване или кожен контакт.',
+    subclasses: ['Остро токсични (LD50)', 'Хронично токсични'],
+    dangers: ['Отравяне при вдишване', 'Кожна абсорбция', 'Поглъщане', 'Замърсяване на водата'],
+    actions: ['Изолирай зоната', 'Евакуирай по посока обратна на вятъра', 'Предотврати навлизане в канализация', 'Уведоми медицинска помощ'],
+    protection: ['Изолиращ дихателен апарат - задължителен', 'Пълен химически костюм', 'Двойни ръкавици'],
+    firefighting: ['Вода за охлаждане', 'Улавяй отпадните води', 'Следи за токсични продукти на горенето']
+  },
+  {
+    id: '6.2', name: 'Инфекциозни', icon: '🦠',
+    accent: '#c0392b',
+    desc: 'Вещества, съдържащи патогени - микроорганизми и токсини, причиняващи болести.',
+    subclasses: ['Категория A - опасни за хора', 'Категория B - диагностични материали'],
+    dangers: ['Биологично заразяване', 'Разпространение на болест', 'Дългосрочно замърсяване'],
+    actions: ['СПЕЦИАЛИЗИРАНА НАМЕСА', 'Изолирай и карантинирай', 'Уведоми здравните власти', 'Не допускай разпространение'],
+    protection: ['Биологична защита ниво 3+', 'Изолиращ апарат', 'Пълен защитен костюм'],
+    firefighting: ['Само с пълна биологична защита', 'Уведоми специалисти преди намеса']
+  },
+  {
+    id: '7', name: 'Радиоактивни', icon: '☢️',
+    accent: '#27ae60',
+    desc: 'Материали, съдържащи радионуклиди, при които концентрацията на активността надвишава определени стойности.',
+    subclasses: ['Категория I - бял етикет', 'Категория II - жълт етикет', 'Категория III - жълт етикет'],
+    dangers: ['Йонизиращо лъчение', 'Вътрешно замърсяване', 'Дългосрочни здравни ефекти', 'Замърсяване на средата'],
+    actions: ['СПЕЦИАЛИЗИРАНА НАМЕСА', 'Евакуирай и изолирай', 'Уведоми ИАЯЕ', 'Измери нивото на радиация', 'Минимизирай времето на излагане'],
+    protection: ['Дозиметър - задължителен', 'Специализирана защита', 'Принцип ALARA - минимално излагане'],
+    firefighting: ['Само с разрешение от радиационен специалист', 'Вода за охлаждане', 'Улавяй отпадните води']
+  },
+  {
+    id: '8', name: 'Корозивни', icon: '🧫',
+    accent: '#16a085',
+    desc: 'Вещества, причиняващи необратими увреждания на кожата при контакт.',
+    subclasses: ['Киселини', 'Основи', 'Корозивни смеси'],
+    dangers: ['Тежки химически изгаряния', 'Увреждане на очите', 'Корозия на метали', 'Токсични пари при смесване'],
+    actions: ['Изолирай зоната', 'Предотврати навлизане в канализация', 'Обилно вода за измиване при контакт', 'Не смесвай киселини с основи'],
+    protection: ['Химически устойчиви ръкавици', 'Защита за очи - задължителна', 'Химически костюм'],
+    firefighting: ['Вода обилно', 'Пяна', 'Внимавай за реакция на вода с концентрирани киселини']
+  },
+  {
+    id: '9', name: 'Различни опасни', icon: '⚠️',
+    accent: '#7f8c8d',
+    desc: 'Вещества и предмети, представляващи опасност при транспорт, но не попадащи в горните класове.',
+    subclasses: ['Литиеви батерии', 'Сухи прашени вещества', 'Магнитни материали', 'Животозастрашаващи вещества'],
+    dangers: ['Зависи от веществото', 'Литиевите батерии - пожар и токсични газове', 'Магнитни - увреждане на електроника'],
+    actions: ['Идентифицирай конкретното вещество', 'Консултирай се с ERG', 'Действай според специфичните наредби'],
+    protection: ['Зависи от веществото', 'Стандартна лична защита като минимум'],
+    firefighting: ['Зависи от веществото', 'При литиеви батерии - обилно вода за охлаждане']
+  }
+];
+
+const UN_SUBSTANCES = [
+  { un: '1005', name: 'Амоняк безводен', class: '2.3', tags: ['токсичен', 'запалим'], pg: 'I' },
+  { un: '1017', name: 'Хлор', class: '2.3', tags: ['токсичен', 'окислител'], pg: 'I' },
+  { un: '1023', name: 'Газ от въглища', class: '2.3', tags: ['токсичен', 'запалим'], pg: 'I' },
+  { un: '1038', name: 'Етилен охладен течен', class: '2.1', tags: ['запалим', 'криогенен'], pg: '-' },
+  { un: '1040', name: 'Етиленов оксид', class: '2.3', tags: ['токсичен', 'запалим'], pg: 'I' },
+  { un: '1050', name: 'Хлороводород безводен', class: '2.3', tags: ['токсичен', 'корозивен'], pg: 'I' },
+  { un: '1053', name: 'Сероводород', class: '2.3', tags: ['токсичен', 'запалим'], pg: 'I' },
+  { un: '1062', name: 'Метил бромид', class: '2.3', tags: ['токсичен'], pg: 'I' },
+  { un: '1072', name: 'Кислород сгъстен', class: '2.2', tags: ['окислител'], pg: '-' },
+  { un: '1075', name: 'Втечнен нефтен газ (LPG)', class: '2.1', tags: ['запалим'], pg: '-' },
+  { un: '1076', name: 'Фосген', class: '2.3', tags: ['токсичен', 'смъртоносен'], pg: 'I' },
+  { un: '1080', name: 'Серен хексафлуорид', class: '2.2', tags: ['незапалим'], pg: '-' },
+  { un: '1090', name: 'Ацетон', class: '3', tags: ['запалим'], pg: 'II' },
+  { un: '1114', name: 'Бензен', class: '3', tags: ['запалим', 'канцероген'], pg: 'II' },
+  { un: '1170', name: 'Етилов алкохол', class: '3', tags: ['запалим'], pg: 'II' },
+  { un: '1202', name: 'Дизелово гориво', class: '3', tags: ['запалим'], pg: 'III' },
+  { un: '1203', name: 'Бензин', class: '3', tags: ['запалим'], pg: 'II' },
+  { un: '1219', name: 'Изопропанол', class: '3', tags: ['запалим'], pg: 'II' },
+  { un: '1223', name: 'Керосин', class: '3', tags: ['запалим'], pg: 'III' },
+  { un: '1267', name: 'Суров петрол', class: '3', tags: ['запалим'], pg: 'I/II/III' },
+  { un: '1294', name: 'Толуен', class: '3', tags: ['запалим'], pg: 'II' },
+  { un: '1301', name: 'Винил ацетат', class: '3', tags: ['запалим'], pg: 'II' },
+  { un: '1381', name: 'Бял фосфор', class: '4.2', tags: ['самозапалващ', 'токсичен'], pg: 'I' },
+  { un: '1402', name: 'Калциев карбид', class: '4.3', tags: ['реагира с вода'], pg: 'I' },
+  { un: '1428', name: 'Натрий', class: '4.3', tags: ['реагира с вода', 'запалим'], pg: 'I' },
+  { un: '1436', name: 'Цинков прах', class: '4.3', tags: ['реагира с вода'], pg: 'I/II' },
+  { un: '1547', name: 'Анилин', class: '6.1', tags: ['токсичен'], pg: 'II' },
+  { un: '1560', name: 'Арсенов трихлорид', class: '6.1', tags: ['токсичен', 'корозивен'], pg: 'I' },
+  { un: '1580', name: 'Хлорпикрин', class: '6.1', tags: ['токсичен'], pg: 'I' },
+  { un: '1648', name: 'Ацетонитрил', class: '3', tags: ['запалим', 'токсичен'], pg: 'II' },
+  { un: '1689', name: 'Натриев цианид', class: '6.1', tags: ['токсичен', 'смъртоносен'], pg: 'I' },
+  { un: '1744', name: 'Бром', class: '8', tags: ['корозивен', 'токсичен'], pg: 'I' },
+  { un: '1779', name: 'Мравчена киселина', class: '8', tags: ['корозивен'], pg: 'II' },
+  { un: '1789', name: 'Солна киселина', class: '8', tags: ['корозивен'], pg: 'II/III' },
+  { un: '1791', name: 'Хипохлорит разтвор', class: '8', tags: ['корозивен', 'окислител'], pg: 'II/III' },
+  { un: '1830', name: 'Сярна киселина', class: '8', tags: ['корозивен'], pg: 'II' },
+  { un: '1831', name: 'Сярна киселина димяща', class: '8', tags: ['корозивен', 'токсичен'], pg: 'I' },
+  { un: '1848', name: 'Пропионова киселина', class: '8', tags: ['корозивен', 'запалим'], pg: 'III' },
+  { un: '1866', name: 'Смола разтвор', class: '3', tags: ['запалим'], pg: 'I/II/III' },
+  { un: '1993', name: 'Запалима течност н.о.с.', class: '3', tags: ['запалим'], pg: 'I/II/III' },
+  { un: '2014', name: 'Водороден прекис 60-70%', class: '5.1', tags: ['окислител', 'корозивен'], pg: 'I' },
+  { un: '2015', name: 'Водороден прекис >70%', class: '5.1', tags: ['окислител', 'корозивен'], pg: 'I' },
+  { un: '2031', name: 'Азотна киселина >70%', class: '8', tags: ['корозивен', 'окислител'], pg: 'I' },
+  { un: '2209', name: 'Формалдехид разтвор', class: '8', tags: ['корозивен', 'токсичен'], pg: 'III' },
+  { un: '2448', name: 'Стопена сяра', class: '4.1', tags: ['запалим'], pg: 'III' },
+  { un: '2491', name: 'Етаноламин', class: '8', tags: ['корозивен'], pg: 'III' },
+  { un: '2672', name: 'Амоняк разтвор 10-35%', class: '8', tags: ['корозивен', 'токсичен'], pg: 'III' },
+  { un: '2794', name: 'Оловни акумулатори', class: '8', tags: ['корозивен'], pg: '-' },
+  { un: '3077', name: 'Опасно за околната среда твърдо н.о.с.', class: '9', tags: ['замърсяващ'], pg: 'III' },
+  { un: '3082', name: 'Опасно за околната среда течно н.о.с.', class: '9', tags: ['замърсяващ'], pg: 'III' },
+  { un: '3166', name: 'Превозно средство с горивни клетки', class: '9', tags: ['различни'], pg: '-' },
+  { un: '3480', name: 'Литиево-йонни батерии', class: '9', tags: ['пожароопасен'], pg: '-' },
+  { un: '3481', name: 'Литиево-йонни батерии в оборудване', class: '9', tags: ['пожароопасен'], pg: '-' },
+];
+
+const EMERGENCY_ACTIONS = [
+  {
+    title: '🔥 ПОЖАР С ОПАСНИ ТОВАРИ',
+    accent: '#e74c3c',
+    steps: [
+      'Спри на безопасно разстояние (мин. 300м) и оцени ситуацията',
+      'Идентифицирай вещество по ООН номер, табела или товарителница',
+      'Уведоми НСЦУ и поискай ХИМПОМ при необходимост',
+      'Позиционирай се срещу вятъра и нагоре по наклона',
+      'Евакуирай застрашените лица',
+      'Ако е безопасно - охлаждай незасегнатите контейнери с вода от максимална дистанция',
+      'Предотврати навлизане на заразени води в канализация'
+    ]
+  },
+  {
+    title: '💧 РАЗЛИВ / ИЗТИЧАНЕ',
+    accent: '#3498db',
+    steps: [
+      'Идентифицирай веществото и провери дали е реагиращо с вода',
+      'Позиционирай се срещу вятъра',
+      'Изолирай зоната - минимум 50м за малки разливи',
+      'Елиминирай всички запалителни източници',
+      'Предотврати навлизане в канализация и водни тела',
+      'При малки разливи - абсорбирай с пясък или инертен материал',
+      'Събери замърсения материал в подходящи контейнери'
+    ]
+  },
+  {
+    title: '☠️ ТОКСИЧНО ИЗТИЧАНЕ',
+    accent: '#8e44ad',
+    steps: [
+      'ЗАДЪЛЖИТЕЛЕН изолиращ дихателен апарат преди намеса',
+      'Определи зоната на изолация по посока на вятъра',
+      'Евакуирай всички лица от засегнатата зона',
+      'Уведоми спешна медицинска помощ за потенциални жертви',
+      'Не влизай в горещата зона без пълна химическа защита',
+      'Деконтаминирай всички излизащи от засегнатата зона',
+      'Проследи потенциално изложените лица'
+    ]
+  },
+  {
+    title: '💥 ВЗРИВ / ЗАСТРАШАВАНЕ ОТ ВЗРИВ',
+    accent: '#e67e22',
+    steps: [
+      'НЕЗАБАВНА евакуация - минимум 500м за клас 1',
+      'Уведоми полиция и пиротехнически екип',
+      'НЕ използвай радиостанции в непосредствена близост',
+      'Осигури периметър и не допускай достъп',
+      'НЕ опитвай да гасиш пожар с взривни материали',
+      'Охлаждай прилежащите структури от максимална дистанция',
+      'Изчакай специализирания екип'
+    ]
+  },
+  {
+    title: '☢️ РАДИАЦИОНЕН ИНЦИДЕНТ',
+    accent: '#27ae60',
+    steps: [
+      'Използвай дозиметър - измери нивото на радиация',
+      'Прилагай принципа ALARA (Минимално излагане)',
+      'Минимизирай времето в зоната, максимизирай разстоянието',
+      'Уведоми незабавно ИАЯЕ (02 940 6810)',
+      'Изолирай зоната - не позволявай влизане',
+      'Деконтаминирай изложените лица',
+      'Документирай времето на излагане на всички участници'
+    ]
+  },
+  {
+    title: '🦠 БИОЛОГИЧЕН ИНЦИДЕНТ',
+    accent: '#c0392b',
+    steps: [
+      'НЕ ПИПАЙ без пълна биологична защита',
+      'Изолирай и карантинирай засегнатата зона',
+      'Уведоми незабавно здравните власти (РЗИ)',
+      'Документирай всички контактни лица',
+      'Предотврати разпространение - ограничи движението',
+      'Деконтаминирай изложените с подходящи разтвори',
+      'Следи здравното състояние на всички участници'
+    ]
+  },
+  {
+    title: '🚗 ПОСТРАДАЛ ПРИ АВАРИЯ С ОТ',
+    accent: '#16a085',
+    steps: [
+      'Идентифицирай веществото преди контакт с пострадалия',
+      'Постави лични предпазни средства',
+      'Изнеси пострадалия от заразената зона',
+      'Деконтаминирай - свали дрехи, обилно измиване с вода',
+      'Уведоми спешна медицинска помощ с информация за веществото',
+      'При поглъщане - НЕ предизвиквай повръщане без медицинска консултация',
+      'При вдишване - свеж въздух, покой, медицинска помощ'
+    ]
+  }
+];
+
+const PLACARDS = [
+  { num: '1', label: 'ВЗРИВНИ', bg: '#e74c3c', color: '#fff', border: '#fff' },
+  { num: '1.4', label: 'ВЗРИВНИ', bg: '#e74c3c', color: '#fff', border: '#fff' },
+  { num: '1.5', label: 'ВЗРИВНИ', bg: '#e74c3c', color: '#fff', border: '#fff' },
+  { num: '2', label: 'ЗАПАЛ. ГАЗ', bg: '#e67e22', color: '#fff', border: '#fff' },
+  { num: '2', label: 'НЕЗАП. ГАЗ', bg: '#27ae60', color: '#fff', border: '#fff' },
+  { num: '2', label: 'ТОКС. ГАЗ', bg: '#fff', color: '#333', border: '#333' },
+  { num: '3', label: 'ЗАПАЛИМА ТЕЧНОСТ', bg: '#e74c3c', color: '#fff', border: '#fff' },
+  { num: '4', label: 'ЗАПАЛИМО ТВЪРДО', bg: '#e74c3c', color: '#fff', border: '#f1c40f' },
+  { num: '4', label: 'САМОЗАПАЛВАЩО', bg: '#fff', color: '#e74c3c', border: '#e74c3c' },
+  { num: '4', label: 'РЕАГИРА С ВОДА', bg: '#2980b9', color: '#fff', border: '#fff' },
+  { num: '5.1', label: 'ОКИСЛИТЕЛ', bg: '#f1c40f', color: '#333', border: '#333' },
+  { num: '5.2', label: 'ОРГ. ПЕРОКСИД', bg: '#f39c12', color: '#fff', border: '#fff' },
+  { num: '6', label: 'ТОКСИЧНО', bg: '#fff', color: '#333', border: '#333' },
+  { num: '6', label: 'ИНФЕКЦИОЗНО', bg: '#fff', color: '#333', border: '#333' },
+  { num: '7', label: 'РАДИОАКТИВНО', bg: '#f1c40f', color: '#333', border: '#333' },
+  { num: '8', label: 'КОРОЗИВНО', bg: '#fff', color: '#333', border: '#333' },
+  { num: '9', label: 'РАЗЛИЧНИ ОПАСНИ', bg: '#fff', color: '#333', border: '#333' },
+];
+
+// ========== INIT ==========
+function init() {
+  renderClasses();
+  renderUN();
+  renderEmergency();
+  renderPlacards();
+  setupSearch();
+  setupOffline();
+}
+
+function renderClasses() {
+  const grid = document.getElementById('classGrid');
+  grid.innerHTML = ADR_CLASSES.map(c => `
+    <div class="class-card" style="--accent:${c.accent}" onclick="showClassDetail('${c.id}')">
+      <div class="class-num">${c.id}</div>
+      <div class="class-name">${c.name}</div>
+      <div class="class-icon">${c.icon}</div>
+    </div>
+  `).join('');
+}
+
+function showClassDetail(id) {
+  const cls = ADR_CLASSES.find(c => c.id === id);
+  if (!cls) return;
+
+  const tagMap = { 'red': 'tag-red', 'orange': 'tag-orange', 'blue': 'tag-blue' };
+
+  const detail = document.getElementById('classDetailView');
+  detail.innerHTML = `
+    <button class="back-btn" onclick="backToClasses()">← НАЗАД</button>
+    <div class="detail-header" style="border-left: 5px solid ${cls.accent}" data-icon="${cls.icon}">
+      <div class="detail-class-num" style="color:${cls.accent}">${cls.id}</div>
+      <div class="detail-class-name">${cls.name}</div>
+      <div class="detail-desc">${cls.desc}</div>
+    </div>
+
+    ${cls.subclasses.length ? `
+    <div class="info-block">
+      <div class="info-block-title info">📋 ПОДКЛАСОВЕ</div>
+      <ul class="info-list">${cls.subclasses.map(s => `<li>${s}</li>`).join('')}</ul>
+    </div>` : ''}
+
+    <div class="info-block">
+      <div class="info-block-title danger">⚠️ ОСНОВНИ ОПАСНОСТИ</div>
+      <ul class="info-list">${cls.dangers.map(d => `<li>${d}</li>`).join('')}</ul>
+    </div>
+
+    <div class="info-block">
+      <div class="info-block-title action">🚨 ДЕЙСТВИЯ ПРИ АВАРИЯ</div>
+      <ul class="info-list">${cls.actions.map(a => `<li>${a}</li>`).join('')}</ul>
+    </div>
+
+    <div class="info-block">
+      <div class="info-block-title protect">🛡️ ЛИЧНА ЗАЩИТА</div>
+      <ul class="info-list">${cls.protection.map(p => `<li>${p}</li>`).join('')}</ul>
+    </div>
+
+    <div class="info-block">
+      <div class="info-block-title info">🧯 ПОЖАРОГАСЕНЕ</div>
+      <ul class="info-list">${cls.firefighting.map(f => `<li>${f}</li>`).join('')}</ul>
+    </div>
+  `;
+
+  document.getElementById('classesListView').style.display = 'none';
+  detail.classList.add('active');
+}
+
+function backToClasses() {
+  document.getElementById('classesListView').style.display = 'block';
+  const detail = document.getElementById('classDetailView');
+  detail.classList.remove('active');
+  detail.innerHTML = '';
+}
+
+function renderUN() {
+  const container = document.getElementById('unList');
+  container.innerHTML = UN_SUBSTANCES.map(u => `
+    <div class="un-card">
+      <div class="un-number">UN ${u.un}</div>
+      <div class="un-name">${u.name}</div>
+      <div class="un-class">Клас ${u.class} • Опаковъчна група: ${u.pg}</div>
+      <div class="un-tags">
+        ${u.tags.map(t => `<span class="tag tag-${getTagColor(t)}">${t}</span>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function getTagColor(tag) {
+  if (['токсичен','смъртоносен','инфекциозен'].includes(tag)) return 'purple';
+  if (['запалим','пожароопасен','самозапалващ'].includes(tag)) return 'red';
+  if (['окислител','корозивен'].includes(tag)) return 'orange';
+  if (['незапалим','криогенен'].includes(tag)) return 'blue';
+  return 'green';
+}
+
+function renderEmergency() {
+  const container = document.getElementById('emergencyList');
+  container.innerHTML = EMERGENCY_ACTIONS.map(a => `
+    <div class="action-card" style="--accent-color:${a.accent}">
+      <div class="action-title">${a.title}</div>
+      <ol class="action-steps">
+        ${a.steps.map(s => `<li>${s}</li>`).join('')}
+      </ol>
+    </div>
+  `).join('');
+}
+
+function renderPlacards() {
+  const grid = document.getElementById('placardGrid');
+  grid.innerHTML = PLACARDS.map(p => `
+    <div class="placard" style="background:${p.bg};color:${p.color};border-color:${p.border}" onclick="">
+      <div class="placard-num">${p.num}</div>
+      <div class="placard-label">${p.label}</div>
+    </div>
+  `).join('');
+}
+
+// ========== SEARCH ==========
+function setupSearch() {
+  const input = document.getElementById('searchInput');
+  const clearBtn = document.getElementById('clearBtn');
+
+  input.addEventListener('input', (e) => {
+    const val = e.target.value.trim();
+    clearBtn.classList.toggle('show', val.length > 0);
+    doSearch(val);
+  });
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('clearBtn').classList.remove('show');
+  document.getElementById('searchResults').classList.remove('active');
+  document.getElementById('searchResults').innerHTML = '';
+}
+
+function doSearch(query) {
+  const results = document.getElementById('searchResults');
+  if (!query) {
+    results.classList.remove('active');
+    results.innerHTML = '';
+    return;
+  }
+
+  const q = query.toLowerCase();
+  const unMatches = UN_SUBSTANCES.filter(u =>
+    u.un.includes(q) || u.name.toLowerCase().includes(q) || u.tags.some(t => t.includes(q))
+  );
+  const classMatches = ADR_CLASSES.filter(c =>
+    c.name.toLowerCase().includes(q) || c.id.includes(q)
+  );
+
+  let html = '';
+
+  if (classMatches.length) {
+    html += `<p class="section-title">КЛАСОВЕ</p>`;
+    html += `<div class="class-grid">${classMatches.map(c => `
+      <div class="class-card" style="--accent:${c.accent}" onclick="showClassDetail('${c.id}');clearSearch()">
+        <div class="class-num">${c.id}</div>
+        <div class="class-name">${c.name}</div>
+        <div class="class-icon">${c.icon}</div>
+      </div>
+    `).join('')}</div>`;
+  }
+
+  if (unMatches.length) {
+    html += `<p class="section-title" style="margin-top:16px">UN ВЕЩЕСТВА</p>`;
+    html += unMatches.map(u => `
+      <div class="un-card">
+        <div class="un-number">UN ${u.un}</div>
+        <div class="un-name">${u.name}</div>
+        <div class="un-class">Клас ${u.class} • ОГ: ${u.pg}</div>
+        <div class="un-tags">${u.tags.map(t => `<span class="tag tag-${getTagColor(t)}">${t}</span>`).join('')}</div>
+      </div>
+    `).join('');
+  }
+
+  if (!html) {
+    html = `<div class="no-results">🔍 Няма резултати за "${query}"</div>`;
+  }
+
+  results.innerHTML = html;
+  results.classList.add('active');
+}
+
+// ========== NAVIGATION ==========
+let currentTab = 'classes';
+
+function switchTab(tab, tabEl, navEl) {
+  currentTab = tab;
+  clearSearch();
+
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + tab).classList.add('active');
+
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+  if (tabEl) tabEl.classList.add('active');
+
+  // sync bottom nav
+  const navBtns = document.querySelectorAll('.nav-btn');
+  const tabOrder = ['classes', 'un', 'emergency', 'placards'];
+  const idx = tabOrder.indexOf(tab);
+  if (navBtns[idx]) navBtns[idx].classList.add('active');
+
+  // sync top tabs
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  if (tabBtns[idx]) tabBtns[idx].classList.add('active');
+}
+
+// ========== OFFLINE ==========
+function setupOffline() {
+  function updateOnlineStatus() {
+    document.getElementById('offlineBadge').classList.toggle('show', !navigator.onLine);
+  }
+  window.addEventListener('online', updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
+  updateOnlineStatus();
+}
+
+init();
+
+// Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+</script>
+
+</body>
+</html>
